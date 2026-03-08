@@ -11,16 +11,16 @@ pub struct SystemState {
     pub core_usage: HashMap<usize, f32>,
     pub core_temp: HashMap<usize, u32>,
     pub gpu_usage: f32,
-    pub gpu_mem: f64,
+    pub gpu_mem: u64,
     pub gpu_temp: u32,
     pub gpu_watt: f32,
-    pub mem_usage: f64,
+    pub mem_usage: u64,
     pub mem_percentage: f32,
-    pub swap_usage: f64,
+    pub swap_usage: u64,
     pub swap_percentage: f32,
-    pub disk_usage: HashMap<String, f32>,
-    pub disk_io: HashMap<String, (f32, f32)>, //disk usage per disk (read, write) in percentage
-    pub net_usage: HashMap<String, (u64, u64)>, // download, upload per interface
+    pub disk_usage: HashMap<String, (u64, u64)>, // disk usage (used, available)
+    pub disk_io: HashMap<String, (u64, u64)>,    //disk usage per disk (read, write) in percentage
+    pub net_usage: HashMap<String, (u64, u64)>,  // download, upload per interface
     pub net_total: HashMap<String, (u64, u64)>,
 }
 pub struct SystemMonitor {
