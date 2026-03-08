@@ -20,7 +20,8 @@ pub struct SystemState {
     pub swap_percentage: f32,
     pub disk_usage: HashMap<String, f32>,
     pub disk_io: HashMap<String, (f32, f32)>, //disk usage per disk (read, write) in percentage
-    pub net_usage: HashMap<String, (f64, f64)>, // download, upload per interface
+    pub net_usage: HashMap<String, (u64, u64)>, // download, upload per interface
+    pub net_total: HashMap<String, (u64, u64)>,
 }
 pub struct SystemMonitor {
     pub system: System,

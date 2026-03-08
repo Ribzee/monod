@@ -16,6 +16,7 @@ pub fn get_processes(system: &mut System) -> Result<Vec<Process>, anyhow::Error>
     system.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
 
     let users = Users::new_with_refreshed_list();
+    let total_memory = system.total_memory();
 
     let processes = system
         .processes()
@@ -32,7 +33,7 @@ pub fn get_processes(system: &mut System) -> Result<Vec<Process>, anyhow::Error>
                 name: proc.name().to_string_lossy().to_string(),
                 cpu_usage: proc.cpu_usage(),
                 memory_usage: proc.memory(),
-                memory_percentage: (proc.memory() as f32 / system.total_memory() as f32) * 100.0,
+                memory_percentage: (proc.memory() as f32 / total_memory as f32) * 100.0,
                 user,
                 parent_id: proc.parent().map(|id| id.as_u32()),
                 command: proc
