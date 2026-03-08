@@ -2,17 +2,17 @@
 
 ## Disclaimer
 
-Monod is still in early development so it is practically unusable and many of the announced features have yet to be implemented. Feel free to participate to the project by checking out the <a href="#contributing">Contributing</a> section.
+Monod is still in early development so it is practically unusable and many of the announced features have yet to be implemented. Feel free to participate in the project by checking out the <a href="#contributing">Contributing</a> section.
 
 ## About The Project
 
-Monod is a system monitor similar to [btop](https://github.com/aristocratos/btop), however this one is written in rust and highly customizable. From the theme and the layout to the choice of the characters, everything can be ajusted to your liking.
+Monod is a system monitor similar to [btop](https://github.com/aristocratos/btop), however this one is written in rust and highly customizable. From the theme and the layout to the choice of the characters, everything can be adjusted to your liking.
 
 ## Getting Started
 
 ### Prerequisites
 
-To get Monod installed you need Rust installed.
+To install Monod you need Rust installed.
 
 ```sh
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -48,7 +48,7 @@ Simply run
 monod
 ```
 
-Alternativaly you can find the command line options with:
+Alternatively you can find the command line options with:
 
 ```sh
 monod -h
