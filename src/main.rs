@@ -1,6 +1,5 @@
 use std::{fs, path::Path, thread::sleep, time::Duration};
 
-use sensors::Sensors;
 use sysinfo::{Components, System};
 
 fn main() {
@@ -9,17 +8,20 @@ fn main() {
 
     println!("{}", cpu_watt);
 
-    let mut sys = System::new_all();
+    let test = machine_info::Machine::new();
 
-    //  loop {
-    //     sys.refresh_cpu_all();
-    //     let total: Vec<u64> = sys.cpus().iter().map(|cpu| cpu.frequency()).collect();
-    //
-    //        let clock = total.clone().iter().sum::<u64>() as f32 / total.len() as f32;
+    let gpu = test.graphics_status();
 
-    //    let clock = total[0];
-    //    println!("{}", clock);
-    //
-    //     sleep(Duration::from_millis(500));
-    //  }
+    let usage = gpu.first().unwrap();
+
+    println!("{}", usage.gpu);
+
+    let result = fs::read_to_string("/proc/loadavg").unwrap_or("0.0 0.0 0.0".to_string());
+
+    let avg = result
+        .split_whitespace()
+        .map(|str| str.parse::<f32>().unwrap_or(0.0))
+        .collect::<Vec<f32>>();
+
+    println!("{}; {:?}", result, avg)
 }

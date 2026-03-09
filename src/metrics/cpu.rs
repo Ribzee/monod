@@ -1,3 +1,5 @@
+use std::fs;
+
 use sysinfo::{Components, System};
 
 pub fn get_cpu_info(system: &mut System) -> (f32, f32, f32, u64) {
@@ -30,4 +32,17 @@ pub fn get_cores_info(system: &mut System) -> Vec<f32> {
         .iter()
         .map(|cpu| cpu.cpu_usage())
         .collect::<Vec<f32>>()
+}
+
+pub fn get_load_avg() -> Vec<f32> {
+    let result = fs::read_to_string("/proc/loadavg").unwrap_or("0.0 0.0 0.0".to_string());
+
+    let avg = result
+        .split_whitespace()
+        .map(|str| str.parse::<f32>().unwrap_or(0.0))
+        .collect::<Vec<f32>>();
+
+    avg.first_chunk::<3>()
+        .unwrap_or(&[0.0f32, 0.0f32, 0.0f32])
+        .to_vec()
 }
