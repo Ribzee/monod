@@ -5,11 +5,11 @@ use sysinfo::System;
 #[derive(Debug, Clone)]
 pub struct SystemState {
     pub cpu_usage: f32,
-    pub cpu_temp: u32,
+    pub cpu_temp: f32,
     pub cpu_watt: f32,
-    pub cpu_clock: f32,
-    pub core_usage: HashMap<usize, f32>,
-    pub core_temp: HashMap<usize, u32>,
+    pub cpu_clock: u64,
+    pub core_usage: Vec<f32>,
+    pub core_temp: Vec<f32>,
     pub gpu_usage: f32,
     pub gpu_mem: u64,
     pub gpu_temp: u32,
