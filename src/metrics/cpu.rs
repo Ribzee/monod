@@ -1,4 +1,7 @@
-use std::fs;
+use std::{
+    fs,
+    time::{Duration, Instant},
+};
 
 use sysinfo::{Components, System};
 
@@ -45,4 +48,20 @@ pub fn get_load_avg() -> Vec<f32> {
     avg.first_chunk::<3>()
         .unwrap_or(&[0.0f32, 0.0f32, 0.0f32])
         .to_vec()
+}
+
+pub fn get_sys_uptime() -> Instant {
+    let result = fs::read_to_string("/proc/uptime").unwrap_or("0.0 0.0".to_string());
+
+    let uptime = result
+        .split_whitespace()
+        .map(|str| str.parse::<u64>().unwrap_or(0))
+        .collect::<Vec<u64>>()
+        .first()
+        .unwrap_or(&0)
+        .to_owned();
+
+    Instant::now()
+        .checked_sub(Duration::from_secs(uptime))
+        .unwrap_or(Instant::now())
 }

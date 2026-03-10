@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Instant};
 
 use sysinfo::System;
 
@@ -22,15 +22,33 @@ pub struct SystemState {
     pub disk_io: HashMap<String, (u64, u64)>,    //disk usage per disk (read, write) in percentage
     pub net_usage: HashMap<String, (u64, u64)>,  // download, upload per interface
     pub net_total: HashMap<String, (u64, u64)>,
+    pub net_top: HashMap<String, (u64, u64)> // top speed per sec
 }
+
+#[derive(Debug, Clone)]
+pub struct SystemInfo {
+    pub uptime: Instant,
+    pub cpu_model: String,
+    pub gpu_model: String,
+    pub gpu_total_mem: u64,
+    pub total_mem: u64,
+    pub total_swap: u64,
+}
+
+#[derive(Debug)]
 pub struct SystemMonitor {
     pub system: System,
+    pub system_state: SystemState,
 }
 
 impl SystemMonitor {
     pub fn new() -> Self {
         let mut system = System::new_all();
         system.refresh_all();
+
+
         Self { system }
     }
+
+    pub fn get_system_info()
 }
