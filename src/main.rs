@@ -1,27 +1,54 @@
-use std::{fs, path::Path, thread::sleep, time::Duration};
+use std::{collections::HashMap, fs, path::Path, thread::sleep, time::Duration};
 
+use machine_info::Machine;
+use monod::metrics::gpu;
 use sysinfo::{Components, System};
 
 fn main() {
-    let cpu_watt = fs::read_to_string("/sys/class/powercap/intel-rapl:0/energy_uj")
-        .unwrap_or_else(|err| err.to_string());
+    let result = fs::read_to_string("/proc/cpuinfo").unwrap_or("model name : unkown".to_string());
 
-    println!("{}", cpu_watt);
+    let cpu = result
+        .lines()
+        .filter(|line| line.starts_with("model name"))
+        .next()
+        .unwrap_or("model name : unknown")
+        .split(':')
+        .nth(1)
+        .unwrap_or("unknown")
+        .trim()
+        .to_string();
 
-    let test = machine_info::Machine::new();
+    println!("{}", cpu);
 
-    let gpu = test.graphics_status();
+    println!(
+        "{}",
+        gpu::get_gpu_name().split(&['[', ']']).nth(1).unwrap_or("g")
+    );
 
-    let usage = gpu.first().unwrap();
+    let test = Machine::new()
+        .system_info()
+        .graphics
+        .first()
+        .unwrap()
+        .memory;
 
-    println!("{}", usage.gpu);
+    println!("{}", test);
 
-    let result = fs::read_to_string("/proc/loadavg").unwrap_or("0.0 0.0 0.0".to_string());
+    let net_usage = HashMap::from([("a", (5, 5)), ("d", (2, 2))]);
 
-    let avg = result
-        .split_whitespace()
-        .map(|str| str.parse::<f32>().unwrap_or(0.0))
-        .collect::<Vec<f32>>();
+    let mut net_total = HashMap::from([("a", (3, 4))]);
 
-    println!("{}; {:?}", result, avg)
+    // To whoever will take the time to read this next piece of code: Sorry.  But for short it adds
+    // net_usage to net_total
+    for key in net_usage.keys() {
+        net_total
+            .entry(key)
+            .and_modify(|e| {
+                let (down, up) = net_usage.get(key).unwrap();
+                *e = (e.0 + down, e.1 + up)
+            })
+            .or_insert(net_usage.get(key).unwrap().clone());
+    }
+
+    println!("{:?}", net_total);
 }

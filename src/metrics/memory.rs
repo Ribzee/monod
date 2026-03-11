@@ -8,7 +8,7 @@ pub fn get_memory_usage(system: &mut System) -> (u64, f32) {
     )
 }
 
-pub fn get_swap_usage(system: &mut System) -> (u64, f32) {
+pub fn get_swap_usage(system: &System) -> (u64, f32) {
     (
         system.used_swap(),
         system.used_swap() as f32 / system.total_swap() as f32 * 100.0,
