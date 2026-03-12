@@ -1,10 +1,13 @@
 use std::{collections::HashMap, fs, path::Path, thread::sleep, time::Duration};
 
 use machine_info::Machine;
-use monod::metrics::gpu;
+use monod::{
+    metrics::{collector::SystemMonitor, gpu},
+    tui::app::app,
+};
 use sysinfo::{Components, System};
 
-fn main() {
+fn main() -> Result<(), anyhow::Error> {
     let result = fs::read_to_string("/proc/cpuinfo").unwrap_or("model name : unkown".to_string());
 
     let cpu = result
@@ -51,4 +54,15 @@ fn main() {
     }
 
     println!("{:?}", net_total);
+
+    //ratatui::run(app)?;
+    let mut system = SystemMonitor::new();
+    let rate = 0.5f32;
+
+    loop {
+        system.update_state(&rate);
+        println!("{:#?}", system);
+        sleep(Duration::from_secs_f32(rate));
+    }
+    Ok(())
 }
