@@ -1,68 +1,23 @@
-use std::{collections::HashMap, fs, path::Path, thread::sleep, time::Duration};
+use std::{fs, path::PathBuf};
 
-use machine_info::Machine;
+use amdgpu_sysfs::gpu_handle::GpuHandle;
 use monod::{
     metrics::{collector::SystemMonitor, gpu},
     tui::app::app,
 };
+use nvml_wrapper::{Nvml, enum_wrappers::device::TemperatureSensor};
 use sysinfo::{Components, System};
 
 fn main() -> Result<(), anyhow::Error> {
-    let result = fs::read_to_string("/proc/cpuinfo").unwrap_or("model name : unkown".to_string());
+    //let mut system = SystemMonitor::new();
+    //let rate = 0.5f32;
 
-    let cpu = result
-        .lines()
-        .filter(|line| line.starts_with("model name"))
-        .next()
-        .unwrap_or("model name : unknown")
-        .split(':')
-        .nth(1)
-        .unwrap_or("unknown")
-        .trim()
-        .to_string();
+    //loop {
+    //    system.update_state(&rate);
+    //    println!("{:#?}", system);
+    //    sleep(Duration::from_secs_f32(rate));
+    //}
+    //
 
-    println!("{}", cpu);
-
-    println!(
-        "{}",
-        gpu::get_gpu_name().split(&['[', ']']).nth(1).unwrap_or("g")
-    );
-
-    let test = Machine::new()
-        .system_info()
-        .graphics
-        .first()
-        .unwrap()
-        .memory;
-
-    println!("{}", test);
-
-    let net_usage = HashMap::from([("a", (5, 5)), ("d", (2, 2))]);
-
-    let mut net_total = HashMap::from([("a", (3, 4))]);
-
-    // To whoever will take the time to read this next piece of code: Sorry.  But for short it adds
-    // net_usage to net_total
-    for key in net_usage.keys() {
-        net_total
-            .entry(key)
-            .and_modify(|e| {
-                let (down, up) = net_usage.get(key).unwrap();
-                *e = (e.0 + down, e.1 + up)
-            })
-            .or_insert(net_usage.get(key).unwrap().clone());
-    }
-
-    println!("{:?}", net_total);
-
-    //ratatui::run(app)?;
-    let mut system = SystemMonitor::new();
-    let rate = 0.5f32;
-
-    loop {
-        system.update_state(&rate);
-        println!("{:#?}", system);
-        sleep(Duration::from_secs_f32(rate));
-    }
     Ok(())
 }

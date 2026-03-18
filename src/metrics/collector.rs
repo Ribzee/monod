@@ -1,11 +1,17 @@
-use std::{collections::HashMap, time::Instant};
+use std::{collections::HashMap, fs, path::PathBuf, time::Instant};
 
+use amdgpu_sysfs::gpu_handle::GpuHandle;
+use nvml_wrapper::Nvml;
 use sysinfo::System;
 
-use crate::metrics::{cpu, disk, gpu, memory, network};
+use crate::metrics::{
+    cpu, disk, gpu, memory, network,
+    process::{Process, get_processes},
+};
 
 #[derive(Debug, Clone)]
 pub struct SystemState {
+    pub processes: Vec<Process>,
     pub cpu_usage: f32,
     pub cpu_temp: f32,
     pub cpu_watt: f32,
@@ -30,6 +36,7 @@ pub struct SystemState {
 impl SystemState {
     pub fn new() -> Self {
         Self {
+            processes: Vec::new(),
             cpu_usage: 0.0,
             cpu_temp: 0.0,
             cpu_watt: 0.0,
@@ -68,6 +75,8 @@ pub struct SystemMonitor {
     pub system: System,
     pub system_state: SystemState,
     pub system_info: SystemInfo,
+    pub nvml: Option<Nvml>,
+    pub gpu_handle: Option<GpuHandle>,
 }
 
 impl SystemMonitor {
@@ -76,12 +85,44 @@ impl SystemMonitor {
         system.refresh_all();
 
         let system_info = SystemMonitor::update_system_info(&system);
+        let nvml = Nvml::init().ok();
 
         Self {
             system,
             system_state: SystemState::new(),
             system_info,
+            nvml,
+            gpu_handle: SystemMonitor::get_gpu_handle(),
         }
+    }
+
+    fn get_gpu_handle() -> Option<GpuHandle> {
+        let results = fs::read_dir("/sys/class/drm")
+            .unwrap()
+            .filter_map(|entry| {
+                let name = entry.as_ref().ok()?.file_name().into_string().ok()?;
+                if name.starts_with("card") && !name.contains("-") {
+                    let path = entry.ok()?.path();
+                    let primary = fs::read_to_string(path.join("device/boot_vga"))
+                        .ok()?
+                        .trim()
+                        .to_string();
+
+                    if primary == "1" {
+                        Some(path.join("device"))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<PathBuf>>();
+
+        let sysfs_path = PathBuf::from(results.first()?);
+        let gpu_handle = GpuHandle::new_from_path(sysfs_path).ok()?;
+
+        Some(gpu_handle)
     }
 
     pub fn update_system_info(system: &System) -> SystemInfo {
@@ -89,15 +130,20 @@ impl SystemMonitor {
             uptime: cpu::get_sys_uptime(),
             cpu_model: cpu::get_cpu_name(),
             gpu_model: gpu::get_gpu_name(),
-            gpu_total_mem: gpu::get_gpu_mem(),
+            gpu_total_mem: gpu::get_gpu_mem(
+                Nvml::init().ok().as_ref(),
+                SystemMonitor::get_gpu_handle().as_ref(),
+            ),
             total_mem: system.total_memory(),
             total_swap: system.total_swap(),
         }
     }
 
     pub fn update_state(&mut self, rate: &f32) {
+        let processes = get_processes(&mut self.system).unwrap();
         let (cpu_usage, cpu_temp, cpu_watt, cpu_clock) = cpu::get_cpu_info(&mut self.system);
-        let (gpu_usage, gpu_mem, gpu_temp, gpu_watt) = gpu::get_gpu_info();
+        let (gpu_usage, gpu_mem, gpu_temp, gpu_watt) =
+            gpu::get_gpu_info(self.nvml.as_ref(), self.gpu_handle.as_ref());
 
         let net_usage = network::get_network_usage(&self.system_state.net_total, rate);
         let net_total = network::get_network_total();
@@ -122,6 +168,7 @@ impl SystemMonitor {
         let (swap_usage, swap_percentage) = memory::get_swap_usage(&self.system);
 
         self.system_state = SystemState {
+            processes,
             cpu_usage,
             cpu_temp,
             cpu_watt,

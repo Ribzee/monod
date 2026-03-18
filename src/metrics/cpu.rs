@@ -37,7 +37,10 @@ pub fn get_cores_info(system: &mut System) -> Vec<f32> {
 }
 
 pub fn get_load_avg() -> (f32, f32, f32) {
-    let result = fs::read_to_string("/proc/loadavg").unwrap_or("0.0 0.0 0.0".to_string());
+    let result = fs::read_to_string("/proc/loadavg")
+        .unwrap_or("0.0 0.0 0.0".to_string())
+        .trim()
+        .to_string();
 
     let avg = result
         .split_whitespace()
@@ -55,7 +58,10 @@ pub fn get_load_avg() -> (f32, f32, f32) {
 }
 
 pub fn get_sys_uptime() -> Instant {
-    let result = fs::read_to_string("/proc/uptime").unwrap_or("0.0 0.0".to_string());
+    let result = fs::read_to_string("/proc/uptime")
+        .unwrap_or("0.0 0.0".to_string())
+        .trim()
+        .to_string();
 
     let uptime = result
         .split_whitespace()
@@ -71,7 +77,10 @@ pub fn get_sys_uptime() -> Instant {
 }
 
 pub fn get_cpu_name() -> String {
-    let result = fs::read_to_string("/proc/cpuinfo").unwrap_or("model name : unkown".to_string());
+    let result = fs::read_to_string("/proc/cpuinfo")
+        .unwrap_or("model name : unkown".to_string())
+        .trim()
+        .to_string();
 
     result
         .lines()
