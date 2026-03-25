@@ -1,23 +1,14 @@
-use std::{fs, path::PathBuf};
-
-use amdgpu_sysfs::gpu_handle::GpuHandle;
-use monod::{
-    metrics::{collector::SystemMonitor, gpu},
-    tui::app::app,
-};
-use nvml_wrapper::{Nvml, enum_wrappers::device::TemperatureSensor};
-use sysinfo::{Components, System};
+use monod::tui::app::App;
 
 fn main() -> Result<(), anyhow::Error> {
-    //let mut system = SystemMonitor::new();
-    //let rate = 0.5f32;
+    let series = ratatui::run(|terminal| App::default().run(terminal))?;
 
-    //loop {
-    //    system.update_state(&rate);
-    //    println!("{:#?}", system);
-    //    sleep(Duration::from_secs_f32(rate));
-    //}
-    //
-
+    println!(
+        "{:#?}",
+        series
+            .iter()
+            .map(|entry| entry.cpu_usage)
+            .collect::<Vec<f32>>()
+    );
     Ok(())
 }

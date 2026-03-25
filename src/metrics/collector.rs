@@ -9,7 +9,7 @@ use crate::metrics::{
     process::{Process, get_processes},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct SystemState {
     pub processes: Vec<Process>,
     pub cpu_usage: f32,
@@ -77,6 +77,7 @@ pub struct SystemMonitor {
     pub system_info: SystemInfo,
     pub nvml: Option<Nvml>,
     pub gpu_handle: Option<GpuHandle>,
+    pub system_state_series: Vec<SystemState>,
 }
 
 impl SystemMonitor {
@@ -93,6 +94,7 @@ impl SystemMonitor {
             system_info,
             nvml,
             gpu_handle: SystemMonitor::get_gpu_handle(),
+            system_state_series: Vec::new(),
         }
     }
 
@@ -140,6 +142,8 @@ impl SystemMonitor {
     }
 
     pub fn update_state(&mut self, rate: &f32) {
+        self.system.refresh_all();
+
         let processes = get_processes(&mut self.system).unwrap();
         let (cpu_usage, cpu_temp, cpu_watt, cpu_clock) = cpu::get_cpu_info(&mut self.system);
         let (gpu_usage, gpu_mem, gpu_temp, gpu_watt) =
@@ -167,6 +171,8 @@ impl SystemMonitor {
         let (mem_usage, mem_percentage) = memory::get_memory_usage(&mut self.system);
         let (swap_usage, swap_percentage) = memory::get_swap_usage(&self.system);
 
+        self.system_state_series.push(self.system_state.clone());
+
         self.system_state = SystemState {
             processes,
             cpu_usage,
@@ -189,5 +195,11 @@ impl SystemMonitor {
             net_total,
             net_top,
         }
+    }
+}
+
+impl Default for SystemMonitor {
+    fn default() -> Self {
+        Self::new()
     }
 }
