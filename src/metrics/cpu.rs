@@ -5,8 +5,6 @@ use std::{
 use sysinfo::{Components, System};
 
 pub fn get_cpu_info(system: &mut System) -> (f32, f32, f32, u64) {
-    system.refresh_cpu_all();
-
     let usage = system.global_cpu_usage();
 
     let clock = system
